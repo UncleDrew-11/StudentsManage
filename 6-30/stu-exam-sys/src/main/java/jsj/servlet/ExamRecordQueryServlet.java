@@ -2,6 +2,7 @@ package jsj.servlet;
 
 import jsj.dao.ExamRecordDAO;
 import jsj.model.ExamRecord;
+import jsj.model.Page;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +14,8 @@ public class ExamRecordQueryServlet extends AbstractBaseServlet{
 
     @Override
     public Object process(HttpServletRequest req, HttpServletResponse resp) throws Exception {
-        List<ExamRecord> records = ExamRecordDAO.query();
+        Page p = Page.parse(req);
+        List<ExamRecord> records = ExamRecordDAO.query(p);
         return records;
     }
 }

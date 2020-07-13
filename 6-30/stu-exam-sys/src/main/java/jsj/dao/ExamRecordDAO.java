@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ExamRecordDAO {
 
-    public static List<ExamRecord> query() {
+    public static List<ExamRecord> query(Page p) {
         List<ExamRecord> records = new ArrayList<>();
         Connection c = null;
         PreparedStatement ps = null;
@@ -20,7 +20,7 @@ public class ExamRecordDAO {
 
         try {
             c = DBUtil.getConnection();
-            String sql = "SELECT" +
+            StringBuilder sql = new StringBuilder("SELECT" +
                     "  er.id," +
                     "  er.score," +
                     "  er.student_id," +
@@ -43,8 +43,37 @@ public class ExamRecordDAO {
                     "  join exam e on er.exam_id = e.id" +
                     "  join classes c on e.classes_id = c.id" +
                     "  join course c2 on e.course_id = c2.id" +
-                    "  join student s on er.student_id = s.id";
-            ps = c.prepareStatement(sql);
+                    "  join student s on er.student_id = s.id");
+            if (p.getSearchText() != null) {
+                sql.append(" WHERE s.student_name like ?");
+            }
+            //查询总的条数
+            StringBuilder countSQL = new StringBuilder("select count(0) count from (");
+            countSQL.append(sql);
+            countSQL.append(") tmp");
+            ps = c.prepareStatement(countSQL.toString());
+            if (p.getSearchText() != null) {
+                ps.setString(1, "%" + p.getSearchText() + "%");
+            }
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                int total = rs.getInt("count");
+                Response.setPageTotal(total);
+            }
+
+            //查询表格数据
+            sql.append(" ORDER BY er.create_time " + p.getSortOrder());
+            sql.append(" LIMIT ?,?");
+            ps = c.prepareStatement(sql.toString());
+            int i = 1;
+            if (p.getSearchText() != null) {
+                ps.setString(i, "%" + p.getSearchText() + "%");
+                i++;
+            }
+            //比如第一页，每页十条数据
+            ps.setInt(i, (p.getPageNumber() - 1) * p.getPageSize() + 1);
+            i++;
+            ps.setInt(i, p.getPageSize());
             rs = ps.executeQuery();
             while (rs.next()) {
                 //设置考试成绩对象

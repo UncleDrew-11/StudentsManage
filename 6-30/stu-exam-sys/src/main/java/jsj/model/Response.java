@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -12,9 +13,12 @@ import java.io.StringWriter;
 @ToString
 public class Response {
 
+    private static ThreadLocal<Integer> PAGE_TOTAL = new ThreadLocal<>();
+
     private boolean success;
     private String code;
     private String message;
+    private Integer total;
     private Object data;
     private String stackTrace;
 
@@ -42,5 +46,13 @@ public class Response {
         e.printStackTrace(pw);
         response.stackTrace = sw.toString();
         return response;
+    }
+
+    public static void setPageTotal(Integer total) {
+        PAGE_TOTAL.set(total);
+    }
+
+    public static Integer getPageTotal() {
+        return PAGE_TOTAL.get();
     }
 }

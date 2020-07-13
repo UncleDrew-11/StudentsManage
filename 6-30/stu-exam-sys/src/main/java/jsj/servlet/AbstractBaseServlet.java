@@ -28,6 +28,7 @@ public abstract class AbstractBaseServlet extends HttpServlet {
         try {
             Object data = process(req, resp);
             response = Response.ok(data);
+            response.setTotal(Response.getPageTotal());
         } catch (Exception e) {
             e.printStackTrace();
             response = Response.error(e);
